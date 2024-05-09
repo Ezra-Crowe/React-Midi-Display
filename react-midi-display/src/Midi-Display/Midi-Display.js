@@ -180,10 +180,11 @@ function Midi_Display({ midiFilePath }) {
         overflowX: "scroll",
         whiteSpace: "nowrap",
         display: "flex",
-        flexDirection: "row",
+        flexDirection: "column",
         alignItems: "flex-start",
       }}
     >
+    <div style={{position: "relative", height: (1 * 0.3 * totalTicks)+"px", width: "100%", zIndex: -1}}>
       {(() => {
         console.log("num notes: " + numNotes[0] + " " + numNotes[1]);
         console.log("noteWidth: " + keyWidth);
@@ -208,7 +209,9 @@ function Midi_Display({ midiFilePath }) {
         );
         return divArray;
       })()}
-        {buildNotes(notes)}
+    {buildNotes(notes)}
+    </div>
+    <div style={{position: "relative", height: keyHeight}}>
       {(() => {
         let divArray = [];
         let whiteNum = 0;
@@ -264,6 +267,7 @@ function Midi_Display({ midiFilePath }) {
         return divArray;
         //<div key={index} style={{ border: "5px solid black", display: 'inline-block', width: '20px', height: '20px', backgroundColor: 'blue'}}></div>
       })()}
+      </div>
     </div>
   );
 }
