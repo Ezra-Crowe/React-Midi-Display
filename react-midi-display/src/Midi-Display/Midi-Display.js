@@ -11,15 +11,25 @@ function isIterable(obj) {
     return (typeof obj[Symbol.iterator]) !== 'undefined';
   }
 
-  function buildNotes(notes)
-  {
-    let prevNote = [0, "", 0]
+function buildNotes(notes) {
+    let prevNote = [0, "", 0];
     let divArray = [];
-    for (let i = 0; i < notes.length; i++)
-    {
-        
+    for (let i = 0; i < notes.length; i++) {
+        const [noteName, duration, noteNumber] = notes[i];
+        // Customize visual representation of each note
+        const style = {
+            backgroundColor: 'blue', // Example background color
+            width: `${duration}px`, // Example width based on note duration
+            height: '20px', // Example fixed height
+            position: 'absolute',
+            left: `${noteNumber * 10}px`, // Example positioning based on note number
+            top: '0', // Example fixed top position
+        };
+        divArray.push(<div key={i} style={style}></div>);
     }
-  }
+    return <div>{divArray}</div>;
+}
+export { buildNotes };
 
 function Midi_Display({ midiFilePath }) {
     const [numNotes, setNumNotes] = useState([0,0]);
@@ -83,7 +93,7 @@ function Midi_Display({ midiFilePath }) {
     
 
     return (
-        <div style={{ overflowY: 'scroll', overflowX: 'scroll', whiteSpace: 'nowrap', display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
+        <div data-testid="midi-display-content" style={{ overflowY: 'scroll', overflowX: 'scroll', whiteSpace: 'nowrap', display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
             
             { (() => {
                 let divArray = [];
@@ -111,3 +121,5 @@ function Midi_Display({ midiFilePath }) {
 }
 
 export default Midi_Display;
+
+<Midi_Display midiFilePath="/path/to/your/midi/file.mid" />
