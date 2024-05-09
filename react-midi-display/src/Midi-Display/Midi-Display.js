@@ -130,6 +130,7 @@ function Midi_Display({ midiFilePath }) {
       window.innerWidth / (numNotes[1] - numNotes[0] - blackKeyNum + 1);
     const newNumNotes = [lowest, highest];
     const newNotes = notes;
+    const newKeyHeight = 3 * newKeyWidth;
 
     // Only update the state if the new state is different from the old state
     if (newKeyWidth !== keyWidth) {
@@ -140,6 +141,9 @@ function Midi_Display({ midiFilePath }) {
     }
     if (newNotes !== notes) {
       setNotes(newNotes);
+    }
+    if (newKeyHeight !== keyHeight) {
+      setKeyHeight(newKeyHeight);
     }
   };
   useEffect(() => {
@@ -171,7 +175,7 @@ function Midi_Display({ midiFilePath }) {
     prevKeyWidth.current = keyWidth;
     prevKeyHeight.current = keyHeight;
     prevNotes.current = notes;
-  }, [midiFilePath, keyWidth]);
+  }, [midiFilePath, keyWidth, keyHeight]);
 
   return (
     <div
@@ -232,7 +236,7 @@ function Midi_Display({ midiFilePath }) {
                 style={{
                   position: "absolute",
                   left:
-                    lastWhiteKeyPosition + (keyWidth + 1) - keyWidth / 4 + "px",
+                    lastWhiteKeyPosition + (keyWidth) - keyWidth / 4 + "px",
                   display: "inline-block",
                   width: keyWidth / 2 + "px",
                   height: keyHeight * (5 / 8) + "px",
