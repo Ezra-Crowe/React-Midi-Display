@@ -38,9 +38,10 @@ function buildNotes(notes) {
       left: `${noteNumber * 10}px`, // Example positioning based on note number
       top: "0", // Example fixed top position
     };
+    console.log("build note div: " + divArray);
     divArray.push(<div key={i} style={style}></div>);
   }
-  return <div>{divArray}</div>;
+  return divArray;
 }
 export { buildNotes };
 
@@ -170,17 +171,6 @@ function Midi_Display({ midiFilePath }) {
     prevKeyWidth.current = keyWidth;
     prevKeyHeight.current = keyHeight;
     prevNotes.current = notes;
-    console.log("midiFilePath: " + midiFilePath);
-    console.log("prevMidiFilePath: " + prevMidiFilePath.current);
-    console.log("numNotes: " + numNotes);
-    console.log("prevNumNotes: " + prevNumNotes.current);
-    console.log("totalTicks: " + totalTicks);
-    console.log("prevTotalTicks: " + prevTotalTicks.current);
-    console.log("keyWidth: " + keyWidth);
-    console.log("prevKeyWidth: " + prevKeyWidth.current);
-    console.log("keyHeight: " + keyHeight);
-    console.log("prevKeyHeight: " + prevKeyHeight.current);
-    console.log("prevNotes: " + prevNotes.current);
   }, [midiFilePath, keyWidth]);
 
   return (
@@ -209,16 +199,16 @@ function Midi_Display({ midiFilePath }) {
               left: 0,
               display: "inline-block",
               width: "100%",
-              height: size * 1 * totalTicks + "px",
+              height: size * 0.3 * totalTicks + "px",
               backgroundColor: "grey",
               zIndex: -1,
             }}
-            {...buildNotes(notes)}
+
           ></div>
         );
         return divArray;
       })()}
-
+        {buildNotes(notes)}
       {(() => {
         let divArray = [];
         let whiteNum = 0;
@@ -251,10 +241,8 @@ function Midi_Display({ midiFilePath }) {
           } else {
             lastWhiteKeyPosition = keyWidth * whiteNum;
             //console.log("lastWhiteKeyPosition after: " + lastWhiteKeyPosition);
-            console.log("key width" + keyWidth);
             //console.log("total space: " + ((keyWidth + 1) * whiteNum));
             whiteNum++;
-            console.log("lastWhiteKeyPosition: " + lastWhiteKeyPosition);
             divArray.push(
               <div
                 key={i}
