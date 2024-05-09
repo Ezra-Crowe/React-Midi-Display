@@ -108,14 +108,33 @@ function Midi_Display({ midiFilePath }) {
                 blackKeyNum++;//
             }
         }
-        console.log("window size: " + window.innerWidth);
-        console.log("white notes: " + (numNotes[1] - numNotes[0] - blackKeyNum));
-        console.log("notelength " + parseInt(window.innerWidth / (numNotes[1] - numNotes[0] - blackKeyNum + 1)) * (numNotes[1] - numNotes[0] - blackKeyNum + 1));
+  // Calculate the new state
+  const newKeyWidth = window.innerWidth / (numNotes[1] - numNotes[0] - blackKeyNum + 1);
+  const newNumNotes = [lowest, highest];
+  const newNotes = notes;
 
-        setKeyWidth(window.innerWidth / (numNotes[1] - numNotes[0] - blackKeyNum + 1))// - 1 - (1 / (numNotes[1] - numNotes[0] - blackKeyNum)));
-        setNumNotes([lowest, highest]);
-        setNotes(notes);
+  // Only update the state if the new state is different from the old state
+  if (newKeyWidth !== keyWidth) {
+    setKeyWidth(newKeyWidth);
+  }
+  if (newNumNotes !== numNotes) {
+    setNumNotes(newNumNotes);
+  }
+  if (newNotes !== notes) {
+    setNotes(newNotes);
+  }
     };
+    useEffect(() => {
+        const handleResize = () => {
+          fetchMidiFile();
+        };
+      
+        window.addEventListener('resize', handleResize);
+      
+        return () => {
+          window.removeEventListener('resize', handleResize);
+        };
+      }, []);
 
     useEffect(() => {
         if (
@@ -127,12 +146,7 @@ function Midi_Display({ midiFilePath }) {
         ) {
           fetchMidiFile();
         }
-        const handleResize = () => {
-            fetchMidiFile();
-          };
-        
-          window.addEventListener('resize', handleResize);
-        
+    
         prevMidiFilePath.current = midiFilePath;
         prevNumNotes.current = numNotes;
         prevTotalTicks.current = totalTicks;
@@ -150,10 +164,7 @@ function Midi_Display({ midiFilePath }) {
         console.log("keyHeight: " + keyHeight);
         console.log("prevKeyHeight: " + prevKeyHeight.current);
         console.log("prevNotes: " + prevNotes.current);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-          };
-      }, [midiFilePath, numNotes, totalTicks, keyWidth, keyHeight]);
+      }, [midiFilePath, keyWidth]);
 
     
 
