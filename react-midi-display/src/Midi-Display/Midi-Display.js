@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Midi from 'midi-player-js';
 import './Midi-Display.css';
 
@@ -38,6 +38,12 @@ function Midi_Display({ midiFilePath }) {
     const [totalTicks, setTotalTicks] = useState(0);
     const [keyWidth, setKeyWidth] = useState(25);
     const [keyHeight, setKeyHeight] = useState(100);
+    const prevMidiFilePath = useRef("");
+    const prevNumNotes = useRef([]);
+    const prevTotalTicks = useRef(-1);
+    const prevKeyWidth = useRef(-1);
+    const prevKeyHeight = useRef(-1);
+    const prevNotes = useRef([]);
 
     const fetchMidiFile = async () => {
         console.log(`Fetching MIDI file from ${midiFilePath}`);
@@ -112,12 +118,42 @@ function Midi_Display({ midiFilePath }) {
     };
 
     useEffect(() => {
-        window.addEventListener('resize', fetchMidiFile)
-        fetchMidiFile();
-        return () => {
-            window.removeEventListener('resize', fetchMidiFile)
+        if (
+          midiFilePath !== prevMidiFilePath.current ||
+          numNotes !== prevNumNotes.current ||
+          totalTicks !== prevTotalTicks.current ||
+          keyWidth !== prevKeyWidth.current ||
+          keyHeight !== prevKeyHeight.current
+        ) {
+          fetchMidiFile();
         }
-    }, [midiFilePath]);
+        const handleResize = () => {
+            fetchMidiFile();
+          };
+        
+          window.addEventListener('resize', handleResize);
+        
+        prevMidiFilePath.current = midiFilePath;
+        prevNumNotes.current = numNotes;
+        prevTotalTicks.current = totalTicks;
+        prevKeyWidth.current = keyWidth;
+        prevKeyHeight.current = keyHeight;
+        prevNotes.current = notes;
+        console.log("midiFilePath: " + midiFilePath);
+        console.log("prevMidiFilePath: " + prevMidiFilePath.current);
+        console.log("numNotes: " + numNotes);
+        console.log("prevNumNotes: " + prevNumNotes.current);
+        console.log("totalTicks: " + totalTicks);
+        console.log("prevTotalTicks: " + prevTotalTicks.current);
+        console.log("keyWidth: " + keyWidth);
+        console.log("prevKeyWidth: " + prevKeyWidth.current);
+        console.log("keyHeight: " + keyHeight);
+        console.log("prevKeyHeight: " + prevKeyHeight.current);
+        console.log("prevNotes: " + prevNotes.current);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+          };
+      }, [midiFilePath, numNotes, totalTicks, keyWidth, keyHeight]);
 
     
 
@@ -127,7 +163,7 @@ function Midi_Display({ midiFilePath }) {
                 console.log("num notes: " + numNotes[0] + " " + numNotes[1]);
                 console.log("noteWidth: " + keyWidth);
                 
-                fetchMidiFile();
+                //fetchMidiFile();
                 let divArray = [];
                 let size = 1;
                 divArray.push(<div key={-1} style={{position: 'absolute', left: 0, display: 'inline-block', width: '100%', height: (size * 1 * totalTicks) + 'px', backgroundColor: 'grey', zIndex: -1}}></div>);
