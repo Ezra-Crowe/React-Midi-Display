@@ -80,6 +80,7 @@ function Midi_Display({ midiFilePath }) {
                   e.noteName,
                   e.tick - noteToNoteState[e.noteNumber][2],
                   e.noteNumber,
+                  e.tick
                 ]);
               } else {
                 noteToNoteState[e.noteNumber][1] = true;
