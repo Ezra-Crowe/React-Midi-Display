@@ -11,43 +11,33 @@ function isIterable(obj) {
   return typeof obj[Symbol.iterator] !== "undefined";
 }
 
-function buildNotes(notes) {
-  let prevNote = [0, "", 0];
-  let divArray = [];
-  divArray.push(
-    <div
-      style={{
-        backgroundColor: "blue", // Example background color
-        width: `${100}px`, // Example width based on note duration
-        height: "20px", // Example fixed height
-        position: "absolute",
-        left: `${0}px`, // Example positioning based on note number
-        top: "0",
-        zIndex: 10,
-      }}
-    ></div>
-  );
-  for (let i = 0; i < notes.length; i++) {
-    const [noteName, duration, noteNumber] = notes[i];
-    // Customize visual representation of each note
-    const style = {
-      backgroundColor: "blue", // Example background color
-      width: `${duration}px`, // Example width based on note duration
-      height: "20px", // Example fixed height
-      position: "absolute",
-      left: `${noteNumber * 10}px`, // Example positioning based on note number
-      top: "0", // Example fixed top position
-    };
-    console.log("build note div: " + divArray);
-    divArray.push(<div key={i} style={style}></div>);
+function buildNotes(notes, keyWidth) {
+  console.log("starting buildnotes fn ... ")
+  if (!notes || notes.length === 0) {
+    console.log("null or empty passed to buildNotes()");
+    return null
   }
-  return divArray;
+  console.log("notes.length = ", notes.length);
+
+  return notes.map((note, index) => {
+    const [noteName, duration, noteNumber] = note;
+    const style = {
+      backgroundColor: "blue",
+      width: `${keyWidth}px`,
+      height: `${duration}px`,
+      position: "absolute",
+      left: `${(noteNumber - 1) * keyWidth}px`,
+      top: "0",
+    };
+
+    return <div key={index} style={style} />;
+  });
 }
-export { buildNotes };
 
 function Midi_Display({ midiFilePath }) {
   const [numNotes, setNumNotes] = useState([0, 0]);
   const [notes, setNotes] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [totalTicks, setTotalTicks] = useState(0);
   const [keyWidth, setKeyWidth] = useState(25);
   const [keyHeight, setKeyHeight] = useState(100);
@@ -145,6 +135,8 @@ function Midi_Display({ midiFilePath }) {
     if (newKeyHeight !== keyHeight) {
       setKeyHeight(newKeyHeight);
     }
+    setNotes(newNotes);
+    setIsLoaded(true);
   };
   useEffect(() => {
     const handleResize = () => {
@@ -156,7 +148,9 @@ function Midi_Display({ midiFilePath }) {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
+    
   }, []);
+  
 
   useEffect(() => {
     if (
@@ -176,6 +170,14 @@ function Midi_Display({ midiFilePath }) {
     prevKeyHeight.current = keyHeight;
     prevNotes.current = notes;
   }, [midiFilePath, keyWidth, keyHeight]);
+
+  useEffect(() => {
+    fetchMidiFile();
+  }, [midiFilePath]);
+
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div
@@ -213,8 +215,9 @@ function Midi_Display({ midiFilePath }) {
         );
         return divArray;
       })()}
-    {buildNotes(notes)}
+        
     </div>
+    {buildNotes(notes, keyWidth)}
     <div style={{position: "relative", height: keyHeight}}>
       {(() => {
         let divArray = [];
