@@ -11,29 +11,57 @@ function isIterable(obj) {
   return typeof obj[Symbol.iterator] !== "undefined";
 }
 
-function buildNotes(notes, keyWidth) {
-  console.log("starting buildnotes fn ... ")
+function buildNotes(notes, keyWidth, lowest, totalTicks) {
   if (!notes || notes.length === 0) {
-    console.log("null or empty passed to buildNotes()");
-    return null
+    return null;
   }
-  console.log("notes.length = ", notes.length);
+
+  let blackKeyCount = 0;
+
+  const isBlackKey = (noteNumber) => {
+    return [1, 3, 6, 8, 10].includes(noteNumber % 12);
+  };
+
+  const getBlackKeysBeforeNote = (noteNumber, lowest) => {
+    let blackKeysBeforeNote = 0;
+    for (let i = lowest; i < noteNumber; i++) {
+      if (isBlackKey(i)) {
+        blackKeysBeforeNote++;
+      }
+    }
+    return blackKeysBeforeNote;
+  };
 
   return notes.map((note, index) => {
-    const [noteName, duration, noteNumber] = note;
+    const [noteName, duration, noteNumber, startTick] = note;
+    const topPosition = (startTick / totalTicks) * 100 + "%"; // Calculate top position based on startTick and totalTicks
+  
+    let width = keyWidth;
+    let left = (noteNumber - lowest - getBlackKeysBeforeNote(noteNumber, lowest)) * keyWidth;
+    let backgroundColor = 'blue';
+  
+    if (isBlackKey(noteNumber)) {
+      width = keyWidth / 2;
+      left = (noteNumber - lowest - getBlackKeysBeforeNote(noteNumber, lowest)) * keyWidth - keyWidth / 4;
+      backgroundColor = 'darkblue';
+      blackKeyCount += 1;
+    } else {
+      blackKeyCount = 0;
+    }
+  
     const style = {
-      backgroundColor: "blue",
-      width: `${keyWidth}px`,
-      height: `${duration}px`,
+      backgroundColor,
+      boxShadow: "inset 0 0 0 1px white",
+      width: `${width}px`,
+      height: `${(duration / totalTicks) * 100}%`, // Adjust height based on duration and totalTicks
       position: "absolute",
-      left: `${(noteNumber - 1) * keyWidth}px`,
-      top: "0",
+      left: `${left}px`,
+      top:  topPosition, // Use calculated top position
     };
-
+  
     return <div key={index} style={style} />;
   });
 }
-
 function Midi_Display({ midiFilePath }) {
   const [numNotes, setNumNotes] = useState([0, 0]);
   const [notes, setNotes] = useState([]);
@@ -47,6 +75,8 @@ function Midi_Display({ midiFilePath }) {
   const prevKeyWidth = useRef(-1);
   const prevKeyHeight = useRef(-1);
   const prevNotes = useRef([]);
+  const [lowest, setLowest] = useState(0);
+  
 
   const fetchMidiFile = async () => {
     console.log(`Fetching MIDI file from ${midiFilePath}`);
@@ -80,7 +110,7 @@ function Midi_Display({ midiFilePath }) {
                   e.noteName,
                   e.tick - noteToNoteState[e.noteNumber][2],
                   e.noteNumber,
-                  e.tick
+                  e.tick - (e.tick - noteToNoteState[e.noteNumber][2])
                 ]);
               } else {
                 noteToNoteState[e.noteNumber][1] = true;
@@ -90,6 +120,7 @@ function Midi_Display({ midiFilePath }) {
             if (e.noteNumber < lowest) {
               lowest = e.noteNumber;
             }
+            setLowest(lowest);
             if (e.noteNumber > highest) {
               highest = e.noteNumber;
             }
@@ -191,7 +222,7 @@ function Midi_Display({ midiFilePath }) {
         alignItems: "flex-start",
       }}
     >
-    <div style={{position: "relative", height: (1 * 0.3 * totalTicks)+"px", width: "100%", zIndex: -1}}>
+    <div style={{position: "relative", height: (1 * 0.3 * totalTicks) +"px", width: "100%", transform: "rotate(180deg)", zIndex: -1}}>
       {(() => {
         console.log("num notes: " + numNotes[0] + " " + numNotes[1]);
         console.log("noteWidth: " + keyWidth);
@@ -211,14 +242,16 @@ function Midi_Display({ midiFilePath }) {
               backgroundColor: "grey",
               zIndex: -1,
             }}
-
-          ></div>
+          >
+            {buildNotes(notes, keyWidth, lowest, totalTicks)}
+          </div>
+          
         );
         return divArray;
       })()}
         
     </div>
-    {buildNotes(notes, keyWidth)}
+    
     <div style={{position: "relative", height: keyHeight}}>
       {(() => {
         let divArray = [];
