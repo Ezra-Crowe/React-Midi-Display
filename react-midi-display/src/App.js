@@ -7,6 +7,6 @@ function App() {
       <Midi_Display midiFilePath={"/pirate.mid"} />
     </div>
   );
-}
+}//
 
 export default App;

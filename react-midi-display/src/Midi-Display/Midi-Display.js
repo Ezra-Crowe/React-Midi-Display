@@ -99,7 +99,7 @@ function Midi_Display({ midiFilePath }) {
           //Keeping the check around though in case they fix the library
           if (e.name == "Note on" || e.name == "Note off") {
             if (e.tick > totalTicks) {
-              setTotalTicks(e.tick);
+              totalTicks = e.tick;
             }
             if (noteToNoteState[e.noteNumber] == undefined) {
               noteToNoteState[e.noteNumber] = [e.noteName, true, e.tick];
@@ -112,6 +112,8 @@ function Midi_Display({ midiFilePath }) {
                   e.noteNumber,
                   e.tick - (e.tick - noteToNoteState[e.noteNumber][2])
                 ]);
+                console.log("notenumber is: " + e.noteNumber + " noteName is: " + e.noteName + " duration is: " + (e.tick - noteToNoteState[e.noteNumber][2]) + " start tick is: " + (e.tick - (e.tick - noteToNoteState[e.noteNumber][2])) + " end tick is: " + e.tick);
+                console.log("previous notes tick is " + noteToNoteState[e.noteNumber][2]);
               } else {
                 noteToNoteState[e.noteNumber][1] = true;
                 noteToNoteState[e.noteNumber][2] = e.tick;
@@ -153,6 +155,8 @@ function Midi_Display({ midiFilePath }) {
     const newNumNotes = [lowest, highest];
     const newNotes = notes;
     const newKeyHeight = 3 * newKeyWidth;
+
+    setTotalTicks(totalTicks);
 
     // Only update the state if the new state is different from the old state
     if (newKeyWidth !== keyWidth) {
@@ -222,7 +226,7 @@ function Midi_Display({ midiFilePath }) {
         alignItems: "flex-start",
       }}
     >
-    <div style={{position: "relative", height: (1 * 0.3 * totalTicks) +"px", width: "100%", transform: "rotate(180deg)", zIndex: -1}}>
+    <div style={{position: "relative", height: (1 * 0.3 * totalTicks) +"px", width: "100%", transform: "rotate(180deg) scaleX(-1)",zIndex: -1}}>
       {(() => {
         console.log("num notes: " + numNotes[0] + " " + numNotes[1]);
         console.log("noteWidth: " + keyWidth);
