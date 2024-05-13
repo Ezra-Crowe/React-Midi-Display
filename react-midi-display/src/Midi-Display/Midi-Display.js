@@ -7,7 +7,6 @@ function isIterable(obj) {
   if (obj == null) {
     return false;
   }
-  //console.log(obj + " is returning " + (typeof obj[Symbol.iterator] !== 'undefined') + " for " + typeof obj[Symbol.iterator]);
   return typeof obj[Symbol.iterator] !== "undefined";
 }
 
@@ -38,7 +37,7 @@ function buildNotes(notes, keyWidth, lowest, totalTicks) {
   
     let width = keyWidth;
     let left = (noteNumber - lowest - getBlackKeysBeforeNote(noteNumber, lowest)) * keyWidth;
-    let backgroundColor = 'blue';
+    let backgroundColor = "#0066ff";
   
     if (isBlackKey(noteNumber)) {
       width = keyWidth / 2;
@@ -76,15 +75,19 @@ function Midi_Display({ midiFilePath }) {
   const prevKeyHeight = useRef(-1);
   const prevNotes = useRef([]);
   const [lowest, setLowest] = useState(0);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [midiFilePath, keyWidth, keyHeight])
   
 
   const fetchMidiFile = async () => {
-    console.log(`Fetching MIDI file from ${midiFilePath}`);
+    console.log("FETCHING MIDI FILE");
     const response = await fetch(midiFilePath);
     const arrayBuffer = await response.arrayBuffer();
     const player = new Midi.Player();
     player.loadArrayBuffer(arrayBuffer);
-    console.log("events ${}", player.getEvents());
     let lowest = Infinity;
     let highest = -Infinity;
     let noteToNoteState = {};
@@ -112,8 +115,6 @@ function Midi_Display({ midiFilePath }) {
                   e.noteNumber,
                   e.tick - (e.tick - noteToNoteState[e.noteNumber][2])
                 ]);
-                console.log("notenumber is: " + e.noteNumber + " noteName is: " + e.noteName + " duration is: " + (e.tick - noteToNoteState[e.noteNumber][2]) + " start tick is: " + (e.tick - (e.tick - noteToNoteState[e.noteNumber][2])) + " end tick is: " + e.tick);
-                console.log("previous notes tick is " + noteToNoteState[e.noteNumber][2]);
               } else {
                 noteToNoteState[e.noteNumber][1] = true;
                 noteToNoteState[e.noteNumber][2] = e.tick;
@@ -130,10 +131,6 @@ function Midi_Display({ midiFilePath }) {
         });
       }
     });
-    console.log(notes);
-    console.log(`Lowest note: ${lowest}, Highest note: ${highest}`);
-    console.log(`Loaded ${highest - lowest} numNotes from MIDI file`);
-    console.log(`Total ticks: ${totalTicks}`);
 
     let blackKeyNum = 0;
 
@@ -150,29 +147,37 @@ function Midi_Display({ midiFilePath }) {
       }
     }
     // Calculate the new state
-    const newKeyWidth =
-      window.innerWidth / (numNotes[1] - numNotes[0] - blackKeyNum + 1);
     const newNumNotes = [lowest, highest];
+    const newKeyWidth =
+      window.innerWidth / (newNumNotes[1] - newNumNotes[0] - blackKeyNum + 1);
     const newNotes = notes;
     const newKeyHeight = 3 * newKeyWidth;
 
     setTotalTicks(totalTicks);
+    prevTotalTicks.current = totalTicks;
+    //prevMidiFilePath.current = midiFilePath;
 
     // Only update the state if the new state is different from the old state
     if (newKeyWidth !== keyWidth) {
-      setKeyWidth(newKeyWidth);
+      await setKeyWidth(newKeyWidth);
+      prevKeyWidth.current = keyWidth;
+      // fetchMidiFile(midiFilePath);
     }
     if (newNumNotes !== numNotes) {
-      setNumNotes(newNumNotes);
+      await setNumNotes(newNumNotes);
+      prevNumNotes.current = numNotes;
     }
     if (newNotes !== notes) {
-      setNotes(newNotes);
+      await setNotes(newNotes);
+      prevNotes.current = notes;
     }
     if (newKeyHeight !== keyHeight) {
-      setKeyHeight(newKeyHeight);
+      await setKeyHeight(newKeyHeight);
+      prevKeyHeight.current = keyHeight;
     }
     setNotes(newNotes);
     setIsLoaded(true);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
   useEffect(() => {
     const handleResize = () => {
@@ -199,15 +204,11 @@ function Midi_Display({ midiFilePath }) {
       fetchMidiFile();
     }
 
-    prevMidiFilePath.current = midiFilePath;
-    prevNumNotes.current = numNotes;
-    prevTotalTicks.current = totalTicks;
-    prevKeyWidth.current = keyWidth;
-    prevKeyHeight.current = keyHeight;
-    prevNotes.current = notes;
+
   }, [midiFilePath, keyWidth, keyHeight]);
 
   useEffect(() => {
+    console.log("FILE PATH CHANGED");
     fetchMidiFile();
   }, [midiFilePath]);
 
@@ -228,8 +229,6 @@ function Midi_Display({ midiFilePath }) {
     >
     <div style={{position: "relative", height: (1 * 0.3 * totalTicks) +"px", width: "100%", transform: "rotate(180deg) scaleX(-1)",zIndex: -1}}>
       {(() => {
-        console.log("num notes: " + numNotes[0] + " " + numNotes[1]);
-        console.log("noteWidth: " + keyWidth);
 
         //fetchMidiFile();
         let divArray = [];
@@ -243,7 +242,7 @@ function Midi_Display({ midiFilePath }) {
               display: "inline-block",
               width: "100%",
               height: size * 0.3 * totalTicks + "px",
-              backgroundColor: "grey",
+              backgroundColor: "#15151e",
               zIndex: -1,
             }}
           >
@@ -288,8 +287,6 @@ function Midi_Display({ midiFilePath }) {
             );
           } else {
             lastWhiteKeyPosition = keyWidth * whiteNum;
-            //console.log("lastWhiteKeyPosition after: " + lastWhiteKeyPosition);
-            //console.log("total space: " + ((keyWidth + 1) * whiteNum));
             whiteNum++;
             divArray.push(
               <div
@@ -307,11 +304,10 @@ function Midi_Display({ midiFilePath }) {
             );
           }
         }
-        console.log(whiteNum);
-        console.log("window size: " + window.innerWidth);
         return divArray;
         //<div key={index} style={{ border: "5px solid black", display: 'inline-block', width: '20px', height: '20px', backgroundColor: 'blue'}}></div>
       })()}
+      <div ref={bottomRef}/>
       </div>
     </div>
   );
